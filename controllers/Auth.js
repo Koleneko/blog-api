@@ -5,14 +5,16 @@ const { User } = require('../models/User');
 
 module.exports.register = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, username, email, password } = req.body;
     const data = {
       fullName,
+      username,
       email,
       password,
     };
     const { error } = Joi.object({
       fullName: Joi.string().required().min(3).max(32),
+      username: Joi.string().required().min(3).max(32),
       email: Joi.string().required().email(),
       password: Joi.string().required().min(3).max(64),
     }).validate(data);
@@ -62,20 +64,24 @@ module.exports.me = async (req, res) => {
 
 module.exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username,  password } = req.body;
     const { error } = Joi.object({
-      email: Joi.string().required().email(),
+      email: Joi.string().email(),
+      username: Joi.string().min(3).max(64),
       password: Joi.string().required().min(3).max(64),
-    }).validate({
+    }).or('email', 'username').validate({
       email,
+      username,
       password,
     });
+
+    let authMethodToken = email || username
 
     if (error) {
       return res.status(400).json({ errors: error.details });
     }
 
-    const user = await User.findOne({ email }).select('fullName email password');
+    const user = await User.findOne({ authMethodToken }).select('fullName email password');
 
     if (!user) {
       return res.status(404).json();
