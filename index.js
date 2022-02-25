@@ -9,6 +9,7 @@ require('dotenv').config();
 
 const app = express();
 
+// noinspection JSCheckFunctionSignatures
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));

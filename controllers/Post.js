@@ -78,7 +78,6 @@ module.exports.show = async (req, res) => {
           return res.status(500).json({ errors: err });
         }
 
-        console.log(123123);
         const result = await Post.findById(id).populate('user');
 
         if (result) {
