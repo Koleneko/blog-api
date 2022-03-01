@@ -7,6 +7,7 @@ const { entityPaginate } = require('../utils/entityPaginate');
 const checkPostBody = Joi.object({
   title: Joi.string().required().min(3).max(256),
   text: Joi.string().required().min(3).max(65536),
+  slug: Joi.string().required(),
   description: Joi.string().required().min(3).max(400),
   photoUrl: Joi.string().min(3).max(100),
   user: Joi.string().required().length(24),
@@ -23,9 +24,10 @@ module.exports.all = async (req, res) => {
 };
 
 module.exports.create = async (req, res) => {
-  const { title, text, photoUrl, description } = req.body;
+  const { title,slug, text, photoUrl, description } = req.body;
   const data = {
     title,
+    slug,
     text,
     description,
     photoUrl,
@@ -93,15 +95,33 @@ module.exports.show = async (req, res) => {
   }
 };
 
+module.exports.showBySlug = async (req, res) => {
+  const {slug} = req.query;
+    try {
+      const post = await Post.findOne({slug}).populate('user')
+
+        if (post) {
+          return res.status(200).json(post);
+        }
+
+        res.status(404).json({ error: 'Такой записи нет в базе' });
+
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ error: 'Произошла серверная ошибка' });
+      }
+};
+
 module.exports.update = async (req, res) => {
   const id = req.params.id;
   if (!validator.isMongoId(id)) {
     res.status(400).json({ error: 'Неверный ID записи' });
   } else {
-    const { title, text, photoUrl, description } = req.body;
+    const { title, text, photoUrl, description, slug } = req.body;
     const data = {
       title,
       text,
+      slug,
       photoUrl,
       description,
       user: req.userId,
@@ -115,7 +135,7 @@ module.exports.update = async (req, res) => {
         if (result) {
           return res.status(202).json();
         }
-        return res.status(404).json({ error: '123Такой записи нет в базе' });
+        return res.status(404).json({ error: 'Такой записи нет в базе' });
       } catch (err) {
         console.log(err);
         return res.status(500).json({ error: 'Произошла серверная ошибка' });

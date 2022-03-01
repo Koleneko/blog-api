@@ -44,7 +44,6 @@ module.exports.getByName = async (req, res) => {
   console.log(username)
     try {
       const user = await User.findOne({username});
-      console.log(`ищем пользователя ${user}`)
       if (user) {
         req.query.userId = user._id;
         const comments = await entityPaginate(Comment, req);
